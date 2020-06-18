@@ -12,9 +12,10 @@ main(List<String> arguments) async {
   var auth_url = 'https://id.twitch.tv/oauth2/authorize?client_id=$clientId&redirect_uri=http://localhost/&response_type=token&scope=';
   stdout.write('Please go to $auth_url, sign in (if you need to), and paste the resulting link (it may take a second to direct to localhost): ');
   var authToken = RegExp('(?<=access_token=)[a-z0-9]+(?=&scope)').firstMatch(stdin.readLineSync()).group(0);
+  print('');
 
   await Future.forEach(arguments, (videoPath) => organizeVideo(videoPath, clientId, authToken));
-  exit(1);
+  await Future.delayed(Duration(seconds: 5), () => exit(1));
 }
 
 void organizeVideo(String videoPath, String clientId, String authToken) async {
@@ -44,8 +45,8 @@ void organizeVideo(String videoPath, String clientId, String authToken) async {
   //determine if the data exists
   var response = await request.close();
   if (response.statusCode == 404) {
-    print('The video has been deleted from twitch.');
-    exit(1);
+    print('$videoFileName video has been deleted from twitch.');
+    return;
   }
 
   //gather data
@@ -63,7 +64,7 @@ void organizeVideo(String videoPath, String clientId, String authToken) async {
     streamerDirectory.createSync();
     videoDirectory.createSync();
 
-    print('${videoDirectory.path}/$videoFileName');
+    print('Archived ${videoDirectory.path}/$videoFileName');
     videoFile.renameSync('${videoDirectory.path}/$videoFileName');
   }
 
